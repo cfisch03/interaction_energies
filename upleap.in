@@ -1,0 +1,52 @@
+source /share/apps/CENTOS7/amber/amber22/dat/leap/cmd/leaprc.protein.ff14SB
+source /share/apps/CENTOS7/amber/amber22/dat/leap/cmd/leaprc.gaff
+source ../../leapfiles/leaprc.DNA.bsc1
+addAtomTypes { { "ZN" "Zn" "sp3" } { "S3" "S" "sp3" } { "N2" "N" "sp3" } }
+loadoff /share/apps/CENTOS7/amber/amber22/dat/leap/lib/amino12.lib
+loadoff /share/apps/CENTOS7/amber/amber22/dat/leap/lib/aminont12.lib
+loadoff /share/apps/CENTOS7/amber/amber22/dat/leap/lib/aminoct12.lib
+loadoff /share/apps/CENTOS7/amber/amber22/dat/leap/lib/nucleic12.lib
+loadoff /share/apps/CENTOS7/amber/amber22/dat/leap/lib/atomic_ions.lib
+loadoff /share/apps/CENTOS7/amber/amber22/dat/leap/lib/solvents.lib
+
+loadamberparams /share/apps/CENTOS7/amber/amber22/dat/leap/parm/frcmod.ff14SB
+loadamberparams /share/apps/CENTOS7/amber/amber22/dat/leap/parm/frcmod.ionsjc_tip3p
+loadamberparams /share/apps/CENTOS7/amber/amber22/dat/leap/parm/frcmod.ions234lm_hfe_tip3p
+
+loadamberparams ../../leapfiles/ZAFF.frcmod
+loadamberprep ../../leapfiles/ZAFF.prep
+
+PROT = loadpdb ../../leapfiles/protein.pdb
+bond PROT.333.ZN PROT.176.SG
+bond PROT.333.ZN PROT.179.ND1
+bond PROT.333.ZN PROT.238.SG
+bond PROT.333.ZN PROT.242.SG
+
+LIG = loadmol2 ./drug.mol2
+COM = combine {PROT LIG}
+check LIG
+
+loadamberparams ./drug.frcmod
+
+saveoff LIG ./ligand.lib
+
+alignaxes COM
+
+saveamberparm COM ./complex_dry.prmtop ./complex_dry.inpcrd
+
+source /share/apps/CENTOS7/amber/amber22/dat/leap/cmd/leaprc.water.tip3p
+#load parameters for water box and add ions to neutralize the system, and then solvate it 
+solvateBox COM TIP3PBOX 12.0
+addions COM Na+ 0 
+
+
+#save with name schematics
+
+saveamberparm PROT protein.prmtop protein.inpcrd
+saveamberparm LIG ligand.prmtop ligand.inpcrd
+saveamberparm COM complex_wat.prmtop complex_wat.inpcrd
+
+savepdb COM ./complex.pdb
+
+quit
+
